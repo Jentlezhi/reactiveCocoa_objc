@@ -22,13 +22,13 @@
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
     
-    [self testEmutor:5];
-    [self sequeue];
+//    [self testEmutor:5];
+    [self map];
     
 }
 
 - (void)truple {
-    //就是
+    //就是简单的包装
     RACTuple *tuple = [RACTuple tupleWithObjectsFromArray:@[@"a",@"b",@"c"]];
     NSLog(@"first= %@",tuple.first);
 }
@@ -90,6 +90,27 @@
     block(^(){
         [self emuter:block];
     });
+}
+
+- (void)dictionary {
+    
+    NSDictionary *dict = @{@"name":@"Jack",@"address":@"BeiJing HaiDian",@"age":@"18"};
+    [dict.rac_sequence.signal subscribeNext:^(id  _Nullable x) {
+//        NSLog(@"%@",x);
+        RACTuple *tuple = x;
+        RACTupleUnpack(NSString *key, NSString *value) = x;
+        NSLog(@"key:%@ value:%@",key,value);
+    }];
+}
+
+- (void)map {
+    //高级用法
+    NSDictionary *dict = @{@"name":@"Jack",@"address":@"BeiJing HaiDian",@"age":@"18"};
+    NSArray *allKeys = [[dict.allKeys.rac_sequence map:^id _Nullable(id  _Nullable value) {
+        return [NSString stringWithFormat:@"%@%@",value,@"_"];
+    }] array];
+    
+    NSLog(@"%@",allKeys);
 }
 
 @end
