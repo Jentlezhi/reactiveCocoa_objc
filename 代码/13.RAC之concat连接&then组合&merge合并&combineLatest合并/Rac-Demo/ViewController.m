@@ -11,6 +11,9 @@
 
 @interface ViewController ()
 
+@property (weak, nonatomic) IBOutlet UITextField *accountTextField;
+@property (weak, nonatomic) IBOutlet UITextField *pwdTextField;
+@property (weak, nonatomic) IBOutlet UIButton *loginBtn;
 
 @end
 
@@ -21,7 +24,7 @@
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event {
-    [self merge];
+    [self combineLatest];
 }
 
 - (void)concat {
@@ -88,6 +91,7 @@
     }];
 }
 
+//任意一个信号请求完成都会订阅到
 - (void)merge {
     
     RACSubject *subjectA = [RACSubject subject];
@@ -101,10 +105,46 @@
     }];
     
     [subjectA sendNext:@"数据A"];
-    [subjectA sendNext:@"数据B"];
-    [subjectA sendNext:@"数据C"];
+    [subjectB sendNext:@"数据B"];
+    [subjectC sendNext:@"数据C"];
 }
 
+//把两个信号压缩成一个信号，只有当两个信号同时发出信号内容时，并且把两个信号的内容合并成一个元祖，才会触发压缩流的next事件
+- (void)zip {
+    
+    RACSubject *subjectA = [RACSubject subject];
+    RACSubject *subjectB = [RACSubject subject];
+    
+    RACSignal *zSignal = [subjectA zipWith:subjectB];
+    
+    [zSignal subscribeNext:^(RACTwoTuple *x) {
+        NSLog(@"%@",x.first);
+        NSLog(@"%@",x.second);
+    }];
+    
+    [subjectA sendNext:@"数据A"];
+    [subjectB sendNext:@"数据B"];
+}
+
+
+- (void)combineLatest {
+    
+    RACSignal *combineSignal = [RACSignal combineLatest:@[self.accountTextField.rac_textSignal,self.pwdTextField.rac_textSignal] reduce:^id (NSString *account, NSString *pwd){
+        
+        return @(account.length && pwd.length);
+    }];
+    
+    [combineSignal subscribeNext:^(id  _Nullable x) {
+        NSLog(@"%@",x);
+    }];
+    
+    RAC(self.loginBtn,enabled) = combineSignal;
+}
+
+- (IBAction)loginClick:(id)sender {
+    
+    NSLog(@"登录");
+}
 
 
 @end
